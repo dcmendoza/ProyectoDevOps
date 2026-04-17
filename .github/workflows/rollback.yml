@@ -1,0 +1,24 @@
+name: Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      service_id:
+        description: 'Render Service ID a restaurar'
+        required: true
+      deploy_id:
+        description: 'Deploy ID objetivo para rollback'
+        required: true
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rollback deploy
+        run: |
+          curl -X POST "https://api.render.com/v1/services/${{ github.event.inputs.service_id }}/deploys/${{ github.event.inputs.deploy_id }}/rollback" \
+          -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+          -H "Accept: application/json"
+      - name: Verify health after rollback
+        run: |
+          curl --fail "${{ secrets.PRODUCTION_API_URL }}/api/health"
