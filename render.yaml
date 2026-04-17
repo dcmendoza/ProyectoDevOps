@@ -1,0 +1,61 @@
+services:
+  - type: web
+    name: mini-trello-backend-staging
+    env: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm ci && npx prisma generate
+    startCommand: npx prisma migrate deploy && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mini-trello-db-staging
+          property: connectionString
+      - key: CORS_ORIGIN
+        value: https://mini-trello-frontend-staging.onrender.com
+
+  - type: web
+    name: mini-trello-frontend-staging
+    env: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://mini-trello-backend-staging.onrender.com/api
+
+  - type: pserv
+    name: mini-trello-db-staging
+    env: postgres
+    plan: free
+
+  - type: web
+    name: mini-trello-backend-production
+    env: node
+    rootDir: backend
+    plan: starter
+    buildCommand: npm ci && npx prisma generate
+    startCommand: npx prisma migrate deploy && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://mini-trello-frontend-production.onrender.com
+
+  - type: web
+    name: mini-trello-frontend-production
+    env: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://mini-trello-backend-production.onrender.com/api
