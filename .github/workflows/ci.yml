@@ -9,30 +9,43 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        project: [backend, frontend]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: ${{ matrix.project }}/package-lock.json
-      - name: Install deps
+          cache-dependency-path: package-lock.json
+
+      - name: Install deps (workspaces)
         run: npm ci
-        working-directory: ${{ matrix.project }}
-      - name: Lint
-        run: npm run lint
-        working-directory: ${{ matrix.project }}
-      - name: Test + coverage
-        run: npm run test
-        working-directory: ${{ matrix.project }}
-      - name: Build
-        run: npm run build
-        working-directory: ${{ matrix.project }}
-      - name: Upload coverage
+
+      - name: Lint backend
+        run: npm run lint -w backend
+
+      - name: Lint frontend
+        run: npm run lint -w frontend
+
+      - name: Test backend + coverage
+        run: npm run test -w backend
+
+      - name: Test frontend + coverage
+        run: npm run test -w frontend
+
+      - name: Build backend
+        run: npm run build -w backend
+
+      - name: Build frontend
+        run: npm run build -w frontend
+
+      - name: Upload backend coverage
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.project }}
-          path: ${{ matrix.project }}/coverage
+          name: coverage-backend
+          path: backend/coverage
+
+      - name: Upload frontend coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-frontend
+          path: frontend/coverage

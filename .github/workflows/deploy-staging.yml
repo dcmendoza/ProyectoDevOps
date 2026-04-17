@@ -12,14 +12,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm ci
-        working-directory: backend
-      - run: npm run test -- --runInBand || npm run test
-        working-directory: backend
-      - run: |
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Basic validation (backend tests)
+        run: npm run test -w backend
+
+      - name: Trigger Render staging deploy
+        run: |
           curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys" \
           -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
           -H "Accept: application/json"
+
       - name: Smoke test staging
         run: |
           curl --fail "${{ secrets.STAGING_API_URL }}/api/health"
